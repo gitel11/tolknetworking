@@ -299,6 +299,7 @@
       <input type="hidden" name="redirect" value="https://tolknetworking.com/success">
       <input type="hidden" name="from_name" value="ТОЛК Нетворкинг">
       <input type="hidden" name="autoresponse" value="Привет! Мы получили твою заявку на ТОЛК 🖤 Рассмотрим портфолио и напишем на этот email. До встречи на нетворкинге ТОЛК · tolknetworking.com">
+      <input type="hidden" name="replyto" value="$email">
       <input type="checkbox" name="botcheck" style="display:none">
 
       <div class="frow">
@@ -421,7 +422,7 @@ function validateForm(){
   if(!name){alert('Пожалуйста, введите имя');return false}
   if(!email||!email.includes('@')){alert('Пожалуйста, введите корректный email');return false}
   if(!prof){alert('Пожалуйста, укажите профессию');return false}
-  if(!port){alert('Пожалуйста, добавьте ссылку на портфолио');return false}
+  if(!port){alert('Пожалуйста, заполните поле портфолио');return false}
   if(!c1){alert('Необходимо согласие на обработку персональных данных');return false}
   return true;
 }
