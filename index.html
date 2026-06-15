@@ -289,18 +289,16 @@
     <p class="pnote">После прохождения отбора мы напишем на твой email со ссылкой на оплату.</p>
 
     <form 
-      action="https://formsubmit.co/info@tolknetworking.ru" 
+      action="https://api.web3forms.com/submit" 
       method="POST"
       onsubmit="return validateTolkForm()"
     >
-      <!-- FormSubmit settings -->
-      <input type="hidden" name="_subject" value="🖤 Новая заявка ТОЛК">
-      <input type="hidden" name="_next" value="https://tolknetworking.com/success">
-      <input type="hidden" name="_captcha" value="false">
-      <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_autoresponse" value="Привет! Мы получили твою заявку на ТОЛК 🖤 Рассмотрим портфолио и напишем на этот email. До встречи на нетворкинге ТОЛК · tolknetworking.com">
-      <input type="hidden" name="_replyto" value="info@tolknetworking.ru">
-      <input type="text" name="_honey" style="display:none">
+      <!-- Web3Forms settings -->
+      <input type="hidden" name="access_key" value="ad08827c-614a-4edf-97e2-4aa4d5a3b907">
+      <input type="hidden" name="subject" value="🖤 Новая заявка ТОЛК">
+      <input type="hidden" name="redirect" value="https://tolknetworking.com/success">
+      <input type="hidden" name="from_name" value="ТОЛК Нетворкинг">
+      <input type="checkbox" name="botcheck" style="display:none">
 
       <div class="frow">
         <input type="text" class="ff" name="name" id="fn" placeholder="Имя *">
