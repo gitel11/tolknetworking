@@ -386,7 +386,7 @@
           <li>Заполни анкету ниже.</li>
           <li>Если в твоей профессии есть место, оно закрепится за тобой на 1 час.</li>
           <li>Оплати билет по ссылке (карта, Bit, Apple Pay, Google Pay). Чек придёт на почту.</li>
-          <li>После оплаты билет с датой, временем и адресом придёт на твою почту, следи за письмом (загляни и в «Спам»). Билет также можно открыть на этом сайте по email и номеру телефона из анкеты.</li>
+          <li>После оплаты билет с датой, временем и адресом придёт на твою почту, следи за письмом (загляни и в «Спам»). Билет также можно открыть на этом сайте по email или номеру телефона из анкеты.</li>
         </ol>
       </div>
 
@@ -395,7 +395,7 @@
         <div id="tlv-find" style="display:none;margin-top:12px">
           <div class="frow">
             <input type="email" class="ff" id="f_email" placeholder="Email из анкеты">
-            <input type="tel" class="ff" id="f_phone" placeholder="Номер WhatsApp из анкеты">
+            <input type="tel" class="ff" id="f_phone" placeholder="или номер WhatsApp из анкеты">
           </div>
           <button type="button" class="fsub" id="f_btn" onclick="tlvFind()">Найти билет</button>
           <p class="stxt" id="f_msg" style="margin-top:10px"></p>
@@ -712,7 +712,7 @@ function tlvResult(res, name){
     if(res.hold_until) h += '<p class="stxt" style="margin-bottom:12px">Осталось: <b id="tlv-timer" ' + b + '></b></p>';
     if(/^https:\/\//.test(res.pay_url || '')){
       h += '<p style="margin-bottom:12px"><a class="city-go" style="margin-top:0" href="' + esc(res.pay_url) + '" target="_blank" rel="noopener">Оплатить билет →</a></p>';
-      h += '<p class="stxt" style="margin-bottom:12px"><b ' + b + '>После оплаты</b> вернись на эту страницу (по ссылке ниже) и обнови её: появится твой билет с датой, временем и адресом. Если потеряешь ссылку, на сайте есть «Найти мой билет» по email и номеру телефона.</p>';
+      h += '<p class="stxt" style="margin-bottom:12px"><b ' + b + '>После оплаты</b> вернись на эту страницу (по ссылке ниже) и обнови её: появится твой билет с датой, временем и адресом. Если потеряешь ссылку, на сайте есть «Найти мой билет» по email или номеру телефона.</p>';
     } else {
       h += '<p class="stxt">Ссылка на оплату пока не загрузилась. Напиши нам в WhatsApp, и мы сразу её пришлём. Твоё место за тобой.</p>';
     }
@@ -770,14 +770,15 @@ function tlvLoadTicket(token){
 function tlvFind(){
   var email = val('f_email'), phone = val('f_phone');
   var msg = document.getElementById('f_msg'), btn = document.getElementById('f_btn');
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || phone.replace(/\D/g,'').length < 9){ msg.textContent = 'Впиши email и номер WhatsApp из анкеты.'; return; }
+  var okEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), okPhone = phone.replace(/\D/g,'').length >= 9;
+  if((email && !okEmail) || (phone && !okPhone) || (!okEmail && !okPhone)){ msg.textContent = 'Впиши email или номер WhatsApp из анкеты (достаточно одного).'; return; }
   btn.disabled = true; msg.textContent = 'Ищем…';
   var body = new URLSearchParams(); body.set('action','find'); body.set('email',email); body.set('phone',phone);
   fetch(TLV.endpoint, {method:'POST', body:body})
     .then(function(r){ return r.json(); })
     .then(function(res){
       btn.disabled = false;
-      if(!res || res.ok !== true){ msg.textContent = 'Не нашли билет. Проверь email и номер, как в анкете, или напиши нам в WhatsApp.'; return; }
+      if(!res || res.ok !== true){ msg.textContent = 'Не нашли билет. Проверь email или номер, как в анкете, или напиши нам в WhatsApp.'; return; }
       if(res.token){ try { history.replaceState(null, '', '#pay=' + res.token); } catch(e){} }
       var form = document.getElementById('form-tlv'); if(form) form.style.display = 'none';
       document.getElementById('tlv-find-wrap').style.display = 'none';
