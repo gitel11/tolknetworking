@@ -386,7 +386,20 @@
           <li>Заполни анкету ниже.</li>
           <li>Если в твоей профессии есть место, оно закрепится за тобой на 1 час.</li>
           <li>Оплати билет по ссылке (карта, Bit, Apple Pay, Google Pay). Чек придёт на почту.</li>
+          <li>После оплаты открой свой билет на этом сайте: там дата, время и адрес. Его можно найти по email и номеру телефона из анкеты.</li>
         </ol>
+      </div>
+
+      <div id="tlv-find-wrap" style="margin-bottom:18px">
+        <a href="#" class="stxt" style="color:var(--white);text-decoration:underline" onclick="document.getElementById('tlv-find').style.display='block';this.style.display='none';return false">Уже регистрировалась(ся)? Найти мой билет</a>
+        <div id="tlv-find" style="display:none;margin-top:12px">
+          <div class="frow">
+            <input type="email" class="ff" id="f_email" placeholder="Email из анкеты">
+            <input type="tel" class="ff" id="f_phone" placeholder="Номер WhatsApp из анкеты">
+          </div>
+          <button type="button" class="fsub" id="f_btn" onclick="tlvFind()">Найти билет</button>
+          <p class="stxt" id="f_msg" style="margin-top:10px"></p>
+        </div>
       </div>
 
       <form id="form-tlv" onsubmit="return submitApplication(event,'tlv')" novalidate>
@@ -686,7 +699,7 @@ function tlvResult(res, name){
     wa = '<p style="margin-top:20px"><a class="city-go" style="margin-top:0" href="https://wa.me/' + esc(TLV.whatsapp) + '?text=' + encodeURIComponent(msg) + '" target="_blank" rel="noopener">Написать в WhatsApp →</a></p>';
   }
   var keep = '';
-  if(res.token && (res.status === 'held' || res.status === 'waitlist')){
+  if(res.token && (res.status === 'held' || res.status === 'waitlist' || res.status === 'paid')){
     keep = '<p class="stxt" style="margin-top:22px">Сохрани эту страницу. Если закроешь её, вернуться можно по личной ссылке:</p>' +
            '<p class="stxt" style="word-break:break-all;color:var(--white);margin:6px 0 10px">' + esc(tlvTicketUrl(res.token)) + '</p>' +
            '<p style="margin:0"><a class="city-go" style="margin-top:0" href="#" onclick="return tlvCopyLink(\'' + esc(res.token) + '\')">Скопировать ссылку</a> <span id="tlv-copied" class="stxt"></span></p>';
@@ -699,12 +712,20 @@ function tlvResult(res, name){
     if(res.hold_until) h += '<p class="stxt" style="margin-bottom:12px">Осталось: <b id="tlv-timer" ' + b + '></b></p>';
     if(/^https:\/\//.test(res.pay_url || '')){
       h += '<p style="margin-bottom:12px"><a class="city-go" style="margin-top:0" href="' + esc(res.pay_url) + '" target="_blank" rel="noopener">Оплатить билет →</a></p>';
+      h += '<p class="stxt" style="margin-bottom:12px"><b ' + b + '>После оплаты</b> вернись на эту страницу (по ссылке ниже) и обнови её: появится твой билет с датой, временем и адресом. Если потеряешь ссылку, на сайте есть «Найти мой билет» по email и номеру телефона.</p>';
     } else {
       h += '<p class="stxt">Ссылка на оплату пока не загрузилась. Напиши нам в WhatsApp, и мы сразу её пришлём. Твоё место за тобой.</p>';
     }
   } else if(res.status === 'paid'){
     title = 'Оплата получена';
-    h += '<p class="stxt">Ты в списке участников' + (name ? ', ' + esc(name) : '') + '. Время и место пришлём в WhatsApp.</p>';
+    h += '<p class="stxt" style="margin-bottom:14px">Ты в списке участников' + (name ? ', ' + esc(name) : '') + '. Это твой билет.</p>';
+    h += '<p class="stxt" style="margin-bottom:6px"><b ' + b + '>Когда:</b> воскресенье, 29 ноября, начало в 13:00</p>';
+    if(res.venue_name || res.venue_address){
+      h += '<p class="stxt" style="margin-bottom:6px"><b ' + b + '>Где:</b> ' + esc(res.venue_name || '') + (res.venue_name && res.venue_address ? ', ' : '') + esc(res.venue_address || '') + '</p>';
+      if(/^https:\/\//.test(res.venue_map || '')) h += '<p style="margin:12px 0 0"><a class="city-go" style="margin-top:0" href="' + esc(res.venue_map) + '" target="_blank" rel="noopener">Открыть на карте →</a></p>';
+    } else {
+      h += '<p class="stxt" style="margin-bottom:6px"><b ' + b + '>Где:</b> адрес появится на этой странице. Сохрани ссылку на билет и открой её ближе к дате.</p>';
+    }
   } else if(res.status === 'expired'){
     title = 'Бронь закончилась';
     h += '<p class="stxt">Час на оплату прошёл, и место освободилось. Если ты не успела оплатить, напиши нам в WhatsApp, и мы посмотрим, есть ли ещё места.</p>';
@@ -723,6 +744,7 @@ function tlvResult(res, name){
 // Страница билета по личной ссылке #pay=КОД
 function tlvLoadTicket(token){
   var form = document.getElementById('form-tlv'); if(form) form.style.display = 'none';
+  var fw = document.getElementById('tlv-find-wrap'); if(fw) fw.style.display = 'none';
   var ok = document.getElementById('success-tlv'); ok.style.display = 'block';
   var t = document.getElementById('tlv-title'), box = document.getElementById('tlv-pay');
   if(!document.getElementById('tlv-timer')){ t.textContent = 'Загружаем твой билет…'; box.innerHTML = ''; }
@@ -743,6 +765,30 @@ function tlvLoadTicket(token){
       t.textContent = 'Не получилось загрузить билет';
       box.innerHTML = '<p class="stxt">Проверь интернет и обнови страницу.</p>';
     });
+}
+// Поиск билета по имени и телефону (для тех, кто потерял личную ссылку)
+function tlvFind(){
+  var email = val('f_email'), phone = val('f_phone');
+  var msg = document.getElementById('f_msg'), btn = document.getElementById('f_btn');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || phone.replace(/\D/g,'').length < 9){ msg.textContent = 'Впиши email и номер WhatsApp из анкеты.'; return; }
+  btn.disabled = true; msg.textContent = 'Ищем…';
+  var body = new URLSearchParams(); body.set('action','find'); body.set('email',email); body.set('phone',phone);
+  fetch(TLV.endpoint, {method:'POST', body:body})
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      btn.disabled = false;
+      if(!res || res.ok !== true){ msg.textContent = 'Не нашли билет. Проверь email и номер, как в анкете, или напиши нам в WhatsApp.'; return; }
+      if(res.token){ try { history.replaceState(null, '', '#pay=' + res.token); } catch(e){} }
+      var form = document.getElementById('form-tlv'); if(form) form.style.display = 'none';
+      document.getElementById('tlv-find-wrap').style.display = 'none';
+      var view = tlvResult(res, res.name || '');
+      document.getElementById('tlv-title').textContent = view.title;
+      document.getElementById('tlv-pay').innerHTML = view.html;
+      if(res.status === 'held' && res.hold_until) tlvStartTimer(res.hold_until, res.token);
+      var ok = document.getElementById('success-tlv'); ok.style.display = 'block';
+      ok.scrollIntoView({behavior:'smooth', block:'center'});
+    })
+    .catch(function(){ btn.disabled = false; msg.textContent = 'Не получилось. Проверь интернет и попробуй ещё раз.'; });
 }
 function tlvTokenFromHash(){
   var m = /^#pay=([A-Za-z0-9]{12,64})$/.exec(location.hash);
@@ -823,6 +869,7 @@ function submitApplication(e, key){
   }
   req.then(function(){
     form.style.display = 'none';
+    var fw2 = document.getElementById('tlv-find-wrap'); if(fw2 && key === 'tlv') fw2.style.display = 'none';
     if(key === 'tlv'){
       if(result && result.token){ try { history.replaceState(null, '', '#pay=' + result.token); } catch(e){} }
       var view = tlvResult(result || {status:'waitlist'}, val('t_name'));
