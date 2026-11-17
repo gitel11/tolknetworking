@@ -275,6 +275,18 @@
     <p class="pnote">Еда и напитки не входят в стоимость билета.</p>
     <p class="pnote">После прохождения отбора мы напишем на твой email со ссылкой на оплату.</p>
 
+    <div id="msk-alum-wrap" style="margin:6px 0 22px">
+      <a href="#" id="msk-alum-link" class="stxt" style="color:var(--white);text-decoration:underline" onclick="document.getElementById('msk-alum').style.display='block';this.style.display='none';return false">Я уже проходил(а) отбор на ТОЛК</a>
+      <div id="msk-alum" style="display:none;margin-top:12px">
+        <p class="stxt" style="margin-bottom:12px">Был(а) на встрече или заявку одобрили, но не получилось прийти? Введи почту, с которой ты подавал(а) заявку, и мы пришлём ссылку на оплату без повторного отбора.</p>
+        <div class="frow">
+          <input type="email" class="ff" id="msk_alum_email" placeholder="Email с прошлой заявки">
+        </div>
+        <button type="button" class="fsub" id="msk_alum_btn" onclick="mskAlum()">Получить ссылку</button>
+        <p class="stxt" id="msk_alum_msg" style="margin-top:10px"></p>
+      </div>
+    </div>
+
     <form 
       action="https://api.web3forms.com/submit" 
       method="POST"
@@ -790,6 +802,20 @@ function tlvLoadTicket(token){
     });
 }
 // Поиск билета по имени и телефону (для тех, кто потерял личную ссылку)
+function mskAlum(){
+  var email = val('msk_alum_email'), msg = document.getElementById('msk_alum_msg'), btn = document.getElementById('msk_alum_btn');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.textContent = 'Впиши email, который ты оставляла(оставлял) в прошлой заявке.'; return; }
+  btn.disabled = true; msg.textContent = 'Проверяем…';
+  var body = new URLSearchParams(); body.set('action','msk_alumni'); body.set('email',email);
+  fetch(TLV.endpoint, {method:'POST', body:body})
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      btn.disabled = false;
+      if(!res || res.ok !== true){ msg.textContent = 'Не получилось. Проверь email и попробуй ещё раз.'; return; }
+      msg.textContent = 'Готово. Если твоя почта есть в нашей базе, письмо со ссылкой на оплату придёт в течение 5–10 минут. Проверь «Входящие» и «Спам». Письма нет? Тогда заполни обычную заявку ниже.';
+    })
+    .catch(function(){ btn.disabled = false; msg.textContent = 'Не получилось. Проверь интернет и попробуй ещё раз.'; });
+}
 function tlvFind(){
   var email = val('f_email'), phone = val('f_phone');
   var msg = document.getElementById('f_msg'), btn = document.getElementById('f_btn');
