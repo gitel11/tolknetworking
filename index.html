@@ -411,29 +411,52 @@
           <input type="text" class="ff" name="surname" id="t_surname" placeholder="Фамилия *">
         </div>
         <div class="frow">
-          <select class="ff sel" name="profession" id="t_prof">
+          <select class="ff sel" name="profession" id="t_prof" onchange="tlvProfChange()">
             <option value="" disabled selected>Твоя профессия *</option>
-            <option value="photographer">Фотограф</option>
-            <option value="videographer">Видеограф</option>
-            <option value="operator">Оператор</option>
-            <option value="designer">Дизайнер</option>
-            <option value="artist">Художник</option>
-            <option value="illustrator">Иллюстратор</option>
-            <option value="art_director">Арт-директор</option>
-            <option value="stylist">Стилист</option>
-            <option value="director">Режиссёр</option>
-            <option value="film_producer">Кинопродюсер</option>
-            <option value="content_producer">Контент-продюсер</option>
-            <option value="event_producer">Ивент-продюсер</option>
-            <option value="journalist">Журналист</option>
-            <option value="editor">Редактор</option>
-            <option value="pr">PR</option>
-            <option value="smm">SMM</option>
-            <option value="musician">Музыкант</option>
-            <option value="sound_engineer">Звукорежиссёр</option>
-            <option value="entrepreneur">Предприниматель / нанимающий</option>
-            <option value="it">IT</option>
-            <option value="other_creative">Другая творческая профессия</option>
+            <optgroup label="Кино, видео, звук">
+              <option value="director">Режиссёр</option>
+              <option value="producer">Продюсер</option>
+              <option value="screenwriter">Сценарист</option>
+              <option value="videographer">Видеограф</option>
+              <option value="operator">Оператор</option>
+              <option value="video_editor">Монтажёр</option>
+              <option value="sound_engineer">Звукорежиссёр</option>
+              <option value="musician">Музыкант</option>
+              <option value="actor">Актёр / перформер</option>
+              <option value="dancer">Танцор / хореограф</option>
+            </optgroup>
+            <optgroup label="Визуальное творчество">
+              <option value="photographer">Фотограф</option>
+              <option value="designer">Дизайнер</option>
+              <option value="ui_ux">UX/UI / продуктовый дизайнер</option>
+              <option value="motion">Моушн-дизайнер / аниматор</option>
+              <option value="illustrator">Иллюстратор</option>
+              <option value="artist">Художник</option>
+              <option value="art_director">Арт-директор</option>
+              <option value="creative_director">Креативный директор</option>
+              <option value="curator">Куратор / галерист</option>
+            </optgroup>
+            <optgroup label="Мода, стиль, пространство">
+              <option value="stylist">Стилист</option>
+              <option value="makeup">Визажист / парикмахер</option>
+              <option value="fashion_designer">Дизайнер одежды</option>
+              <option value="architect">Архитектор / дизайнер интерьера</option>
+            </optgroup>
+            <optgroup label="Тексты, медиа, маркетинг">
+              <option value="journalist">Журналист</option>
+              <option value="editor">Редактор</option>
+              <option value="copywriter">Копирайтер / автор</option>
+              <option value="pr">PR</option>
+              <option value="smm">SMM</option>
+              <option value="marketer">Маркетолог / рекламщик</option>
+              <option value="blogger">Блогер / контент-креатор</option>
+            </optgroup>
+            <optgroup label="Технологии и бизнес">
+              <option value="ai_creator">AI-креатор</option>
+              <option value="it">IT</option>
+              <option value="entrepreneur">Предприниматель / нанимающий</option>
+            </optgroup>
+            <option value="other_creative">Другое: напишу свою профессию</option>
           </select>
         </div>
         <div class="frow">
@@ -818,12 +841,20 @@ function validateApplication(key){
     if(!val('t_name')){ alert('Пожалуйста, введите имя'); return false; }
     if(!val('t_surname')){ alert('Пожалуйста, введите фамилию'); return false; }
     if(!val('t_prof')){ alert('Пожалуйста, выберите профессию'); return false; }
+    if(val('t_prof') === 'other_creative' && !val('t_prof_detail')){ alert('Напиши, пожалуйста, свою профессию'); return false; }
     if(!val('t_sphere')){ alert('Пожалуйста, выберите сферу деятельности'); return false; }
     if(val('t_phone').replace(/\D/g,'').length < 9){ alert('Пожалуйста, укажите номер WhatsApp с кодом страны, например +972…'); return false; }
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val('t_email'))){ alert('Пожалуйста, укажите email: туда придёт ссылка на оплату и чек'); return false; }
     if(!document.getElementById('t_c1').checked){ alert('Необходимо согласие на обработку персональных данных'); return false; }
   }
   return true;
+}
+function tlvProfChange(){
+  var d = document.getElementById('t_prof_detail');
+  if(!d) return;
+  var other = document.getElementById('t_prof').value === 'other_creative';
+  d.placeholder = other ? 'Напиши свою профессию *' : 'Уточни, чем занимаешься (по желанию)';
+  if(other){ d.focus(); }
 }
 function submitApplication(e, key){
   e.preventDefault();
@@ -839,8 +870,8 @@ function submitApplication(e, key){
     var fullName = (val('t_name') + ' ' + val('t_surname')).trim();
     var profSel = document.getElementById('t_prof');
     var extra = [
-      profSel.options[profSel.selectedIndex].text,
-      val('t_prof_detail'),
+      (val('t_prof') === 'other_creative' ? 'Другое: ' + val('t_prof_detail') : profSel.options[profSel.selectedIndex].text),
+      (val('t_prof') === 'other_creative' ? '' : val('t_prof_detail')),
       'сфера: ' + val('t_sphere'),
       'откуда: ' + (val('t_source') || '-'),
       'работы: ' + (val('t_links') || '-'),
